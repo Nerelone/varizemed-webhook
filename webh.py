@@ -662,7 +662,13 @@ def webhook():
     
     # Registra inbound
     _add_message_if_new(conversation_id, sid, "in", "user", body, media_url=media_url, media_type=media_type)
-    _update_conversation(conversation_id, last_message_text=body, last_in_from="user")
+    # Materializa o último inbound no doc da conversa para queries rápidas no CRM
+    _update_conversation(
+        conversation_id,
+        last_message_text=body,
+        last_in_from="user",
+        last_inbound_at=firestore.SERVER_TIMESTAMP,
+    )
 
     # ✅ RESPONDE IMEDIATAMENTE AO TWILIO (evita timeout)
     # O processamento continua em background
