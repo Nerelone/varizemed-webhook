@@ -2,7 +2,11 @@
 
 from app.extensions import get_df_client, get_fs, get_http_session
 from app.repositories.firestore_repo import FirestoreRepository
-from app.services.webhook_service import handle_webhook, twiml_empty
+from app.services.webhook_service import (
+    get_aggregation_debug_info,
+    handle_webhook,
+    twiml_empty,
+)
 
 from . import bp
 
@@ -27,3 +31,8 @@ def webhook():
         cx_client=get_df_client(),
         http_session=get_http_session(),
     )
+
+
+@bp.get("/debug/buffers")
+def debug_buffers():
+    return get_aggregation_debug_info(current_app.config)

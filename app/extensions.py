@@ -20,7 +20,7 @@ def _get_retry_session(retries=3, backoff_factor=0.5, status_forcelist=(500, 502
         connect=retries,
         backoff_factor=backoff_factor,
         status_forcelist=status_forcelist,
-        allowed_methods=["GET", "POST"],
+        allowed_methods=["GET"],
         raise_on_status=False,
     )
     adapter = HTTPAdapter(max_retries=retry)

@@ -1,9 +1,20 @@
 ﻿import logging
 from collections.abc import Mapping
+import random
+import time
 
+from google.api_core import exceptions as gexc
 from google.cloud import dialogflowcx_v3 as dfcx
 from google.protobuf.struct_pb2 import Struct, Value
 from google.protobuf.json_format import MessageToDict
+
+_TRANSIENT_DF_ERRORS = (
+    gexc.InternalServerError,
+    gexc.ServiceUnavailable,
+    gexc.DeadlineExceeded,
+    gexc.Aborted,
+    gexc.ResourceExhausted,
+)
 
 
 def struct_to_dict(obj):
@@ -85,7 +96,17 @@ def _cx_session_path(settings, session_id: str) -> str:
     )
 
 
-def detect_intent_text(df_client, settings, session_id, text, user_id=None, session_params=None):
+def detect_intent_text(
+    df_client,
+    settings,
+    session_id,
+    text,
+    user_id=None,
+    session_params=None,
+    *,
+    timeout_s: float = 15.0,
+    attempts: int = 3,
+):
     session = _cx_session_path(settings, session_id)
 
     query_params = dfcx.QueryParameters()
@@ -110,7 +131,7 @@ def detect_intent_text(df_client, settings, session_id, text, user_id=None, sess
 
         if has_params:
             query_params.parameters = params_struct
-            logging.info(f"📤 CX QueryParams: user_id={user_id}, extras={session_params}")
+            logging.info(f"CX QueryParams: user_id={user_id}, extras={session_params}")
 
     req = dfcx.DetectIntentRequest(
         session=session,
@@ -121,11 +142,35 @@ def detect_intent_text(df_client, settings, session_id, text, user_id=None, sess
         query_params=query_params if has_params else None,
     )
 
-    resp = df_client.detect_intent(request=req)
-    texts = []
-    for msg in resp.query_result.response_messages:
-        if msg.text and msg.text.text:
-            for piece in msg.text.text:
-                if piece:
-                    texts.append(piece)
-    return texts, resp
+    attempts = max(1, int(attempts or 1))
+    last_exc = None
+    for i in range(attempts):
+        try:
+            resp = df_client.detect_intent(request=req, timeout=timeout_s)
+            texts = []
+            for msg in resp.query_result.response_messages:
+                if msg.text and msg.text.text:
+                    for piece in msg.text.text:
+                        if piece:
+                            texts.append(piece)
+            return texts, resp
+        except _TRANSIENT_DF_ERRORS as exc:
+            last_exc = exc
+            if i + 1 >= attempts:
+                break
+            sleep_s = (0.4 * (2 ** i)) + random.uniform(0, 0.25)
+            logging.warning(
+                "CX detect_intent transitorio (%s) tentativa %d/%d timeout=%.1fs sleep=%.2fs session_id=%s",
+                type(exc).__name__,
+                i + 1,
+                attempts,
+                timeout_s,
+                sleep_s,
+                session_id,
+                exc_info=True,
+            )
+            time.sleep(sleep_s)
+
+    if last_exc:
+        raise last_exc
+    raise RuntimeError("CX detect_intent falhou sem excecao registrada")

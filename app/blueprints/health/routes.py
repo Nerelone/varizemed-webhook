@@ -15,4 +15,4 @@ def healthz():
 
 @bp.get("/")
 def root():
-    return "Webh Flask ativo (v2 - async). Use /abacaxi, /healthz e /webhook (POST do Twilio)."
+    return "Webh Flask ativo (v3 - async + message aggregation). Use /abacaxi, /healthz e /webhook (POST do Twilio)."

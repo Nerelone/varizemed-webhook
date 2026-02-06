@@ -1,5 +1,6 @@
 ﻿import logging
 import threading
+import time
 import uuid
 
 from flask import Response
@@ -17,6 +18,10 @@ def twiml_empty(status: int = 200) -> Response:
     resp = Response(twiml, status=status, mimetype="text/xml; charset=utf-8")
     resp.headers["Cache-Control"] = "no-store"
     return resp
+
+
+_message_buffers = {}
+_buffers_lock = threading.Lock()
 
 
 def is_valid_twilio_request(req, auth_token: str) -> bool:
@@ -63,6 +68,12 @@ def _is_truthy(value) -> bool:
             if _is_truthy(v):
                 return True
     return False
+
+
+def _bool_setting(settings, key, default=False) -> bool:
+    if key not in settings:
+        return default
+    return _is_truthy(settings.get(key))
 
 
 def _handoff_from_cx(resp, texts, allow_param: bool, settings) -> bool:
@@ -127,13 +138,13 @@ def extract_inbound_request(req):
         media_type = req.form.get("MediaContentType0")
 
         if media_type and media_type.startswith("audio/") and not body.strip():
-            body = "🎤 Áudio"
+            body = "[Audio]"
         elif media_type and media_type.startswith("image/") and not body.strip():
-            body = "🖼️ Imagem"
+            body = "[Imagem]"
         elif media_type and media_type.startswith("video/") and not body.strip():
-            body = "🎥 Vídeo"
+            body = "[Video]"
         elif media_type and not body.strip():
-            body = "📄 Documento"
+            body = "[Documento]"
 
     conversation_id = _conversation_id_e164(frm)
     session_id = _session_id_from_from_field(frm)
@@ -147,6 +158,213 @@ def extract_inbound_request(req):
         "media_type": media_type,
         "conversation_id": conversation_id,
         "session_id": session_id,
+    }
+
+
+def _get_or_create_buffer(conversation_id: str) -> dict:
+    with _buffers_lock:
+        if conversation_id not in _message_buffers:
+            _message_buffers[conversation_id] = {
+                "messages": [],
+                "timer": None,
+                "lock": threading.Lock(),
+                "first_ts": None,
+                "first_data": None,
+            }
+        return _message_buffers[conversation_id]
+
+
+def _clear_buffer(conversation_id: str):
+    with _buffers_lock:
+        buffer = _message_buffers.pop(conversation_id, None)
+        if buffer and buffer.get("timer"):
+            try:
+                buffer["timer"].cancel()
+            except Exception:
+                pass
+
+
+def _calculate_next_delay(buffer: dict, settings) -> float:
+    now = time.time()
+    first_ts = buffer.get("first_ts") or now
+    elapsed = now - first_ts
+
+    initial_seconds = float(settings.get("MESSAGE_DEBOUNCE_INITIAL_SECONDS", 5.0))
+    extend_seconds = float(settings.get("MESSAGE_DEBOUNCE_EXTEND_SECONDS", 3.0))
+    max_seconds = float(settings.get("MESSAGE_DEBOUNCE_MAX_SECONDS", 10.0))
+
+    remaining_to_max = max_seconds - elapsed
+    if remaining_to_max <= 0:
+        return 0.1
+
+    if len(buffer.get("messages", [])) <= 1:
+        return min(initial_seconds, remaining_to_max)
+
+    return min(extend_seconds, remaining_to_max)
+
+
+def _process_aggregated_messages(conversation_id: str):
+    buffer = _message_buffers.get(conversation_id)
+    if not buffer:
+        logging.warning("Buffer nao encontrado para %s no momento do processamento", conversation_id)
+        return
+
+    with buffer["lock"]:
+        messages = list(buffer.get("messages", []))
+        first_data = buffer.get("first_data")
+
+        if not messages or not first_data:
+            logging.info("Buffer vazio ou sem dados para %s, ignorando", conversation_id)
+            _clear_buffer(conversation_id)
+            return
+
+        buffer["timer"] = None
+
+    _clear_buffer(conversation_id)
+
+    message_bodies = [m.get("body", "").strip() for m in messages if m.get("body", "").strip()]
+    if not message_bodies:
+        logging.info("Nenhum corpo de mensagem valido para %s", conversation_id)
+        return
+
+    if len(message_bodies) == 1:
+        aggregated_body = message_bodies[0]
+    else:
+        aggregated_body = " | ".join(message_bodies)
+
+    frm = first_data.get("frm")
+    session_id = first_data.get("session_id")
+    conv_data = first_data.get("conv_data", {})
+    inbound_id = first_data.get("inbound_id", "unknown")
+    settings = first_data.get("settings", {})
+    repo = first_data.get("repo")
+    cx_client = first_data.get("cx_client")
+    http_session = first_data.get("http_session")
+
+    media_url = None
+    media_type = None
+    for msg in messages:
+        if msg.get("media_url"):
+            media_url = msg["media_url"]
+            media_type = msg.get("media_type")
+            break
+
+    aggregated_id = f"agg:{inbound_id}:{len(messages)}"
+
+    logging.info(
+        "Processando %d mensagens agregadas para %s: %r",
+        len(messages),
+        conversation_id,
+        aggregated_body[:100],
+    )
+    log_event(
+        "aggregated_messages",
+        conversation_id=conversation_id,
+        message_count=len(messages),
+        aggregated_text=aggregated_body[:200],
+    )
+
+    process_message_async(
+        frm=frm,
+        body=aggregated_body,
+        sid=aggregated_id,
+        conversation_id=conversation_id,
+        session_id=session_id,
+        media_url=media_url,
+        media_type=media_type,
+        conv_data=conv_data,
+        settings=settings,
+        repo=repo,
+        cx_client=cx_client,
+        http_session=http_session,
+    )
+
+
+def _add_to_aggregation_buffer(
+    *,
+    conversation_id: str,
+    frm: str,
+    body: str,
+    inbound_id: str,
+    session_id: str,
+    media_url: str,
+    media_type: str,
+    conv_data: dict,
+    settings,
+    repo,
+    cx_client,
+    http_session,
+):
+    if not _bool_setting(settings, "FEATURE_MESSAGE_AGGREGATION", default=True):
+        return False
+
+    buffer = _get_or_create_buffer(conversation_id)
+
+    with buffer["lock"]:
+        now = time.time()
+        if not buffer["messages"]:
+            buffer["first_ts"] = now
+            buffer["first_data"] = {
+                "frm": frm,
+                "session_id": session_id,
+                "conv_data": conv_data,
+                "inbound_id": inbound_id,
+                "settings": settings,
+                "repo": repo,
+                "cx_client": cx_client,
+                "http_session": http_session,
+            }
+
+        buffer["messages"].append({
+            "body": body,
+            "inbound_id": inbound_id,
+            "media_url": media_url,
+            "media_type": media_type,
+            "ts": now,
+        })
+
+        if buffer.get("timer"):
+            try:
+                buffer["timer"].cancel()
+            except Exception:
+                pass
+
+        delay = _calculate_next_delay(buffer, settings)
+
+        logging.info(
+            "Mensagem %d adicionada ao buffer de %s. Delay: %.1fs. Texto: %r",
+            len(buffer["messages"]),
+            conversation_id,
+            delay,
+            body[:50] if body else "",
+        )
+
+        timer = threading.Timer(delay, _process_aggregated_messages, args=(conversation_id,))
+        timer.daemon = True
+        buffer["timer"] = timer
+        timer.start()
+
+    return True
+
+
+def get_aggregation_debug_info(settings):
+    with _buffers_lock:
+        info = {}
+        for conv_id, buf in _message_buffers.items():
+            info[conv_id] = {
+                "message_count": len(buf.get("messages", [])),
+                "first_ts": buf.get("first_ts"),
+                "has_timer": buf.get("timer") is not None,
+            }
+
+    return {
+        "aggregation_enabled": _bool_setting(settings, "FEATURE_MESSAGE_AGGREGATION", default=True),
+        "config": {
+            "initial_seconds": float(settings.get("MESSAGE_DEBOUNCE_INITIAL_SECONDS", 5.0)),
+            "extend_seconds": float(settings.get("MESSAGE_DEBOUNCE_EXTEND_SECONDS", 3.0)),
+            "max_seconds": float(settings.get("MESSAGE_DEBOUNCE_MAX_SECONDS", 10.0)),
+        },
+        "active_buffers": info,
     }
 
 
@@ -166,7 +384,7 @@ def handle_webhook(req, *, settings, repo, cx_client, http_session):
     conversation_id = inbound["conversation_id"]
     session_id = inbound["session_id"]
 
-    logging.info("📥 Inbound: from=%s sid=%s body=%r", frm, sid, body[:50] if body else "")
+    logging.info("Inbound: from=%s sid=%s body=%r", frm, sid, body[:50] if body else "")
     log_event(
         "inbound",
         conversation_id=conversation_id,
@@ -180,7 +398,27 @@ def handle_webhook(req, *, settings, repo, cx_client, http_session):
     conv_snap, _existed = repo.ensure_conversation(conversation_id, session_id)
     conv_data = conv_snap.to_dict() if conv_snap else {}
 
-    repo.add_message_if_new(conversation_id, sid, "in", "user", body, media_url=media_url, media_type=media_type)
+    idem = req.headers.get("I-Twilio-Idempotency-Token")
+    inbound_id = sid or idem or str(uuid.uuid4())
+
+    created = repo.add_message_if_new(
+        conversation_id,
+        inbound_id,
+        "in",
+        "user",
+        body,
+        media_url=media_url,
+        media_type=media_type,
+    )
+    if not created:
+        logging.info(
+            "Webhook duplicado (inbound ja existe). Ignorando processamento. inbound_id=%s sid=%s idem=%s",
+            inbound_id,
+            sid,
+            idem,
+        )
+        return twiml_empty(status=200)
+
     repo.update_conversation(
         conversation_id,
         last_message_text=body,
@@ -188,29 +426,46 @@ def handle_webhook(req, *, settings, repo, cx_client, http_session):
         last_inbound_at=firestore.SERVER_TIMESTAMP,
     )
 
-    thread = threading.Thread(
-        target=process_message_async,
-        args=(
-            frm,
-            body,
-            sid,
-            conversation_id,
-            session_id,
-            media_url,
-            media_type,
-            conv_data,
-        ),
-        kwargs={
-            "settings": settings,
-            "repo": repo,
-            "cx_client": cx_client,
-            "http_session": http_session,
-        },
-        daemon=True,
+    added_to_buffer = _add_to_aggregation_buffer(
+        conversation_id=conversation_id,
+        frm=frm,
+        body=body,
+        inbound_id=inbound_id,
+        session_id=session_id,
+        media_url=media_url,
+        media_type=media_type,
+        conv_data=conv_data,
+        settings=settings,
+        repo=repo,
+        cx_client=cx_client,
+        http_session=http_session,
     )
-    thread.start()
 
-    logging.info("⚡ Respondendo ao Twilio imediatamente (processamento async iniciado)")
+    if not added_to_buffer:
+        thread = threading.Thread(
+            target=process_message_async,
+            args=(
+                frm,
+                body,
+                inbound_id,
+                conversation_id,
+                session_id,
+                media_url,
+                media_type,
+                conv_data,
+            ),
+            kwargs={
+                "settings": settings,
+                "repo": repo,
+                "cx_client": cx_client,
+                "http_session": http_session,
+            },
+            daemon=True,
+        )
+        thread.start()
+        logging.info("Respondendo ao Twilio imediatamente (processamento async iniciado - sem agregacao)")
+    else:
+        logging.info("Respondendo ao Twilio imediatamente (mensagem adicionada ao buffer de agregacao)")
     return twiml_empty(status=200)
 
 
@@ -230,7 +485,10 @@ def process_message_async(
     http_session,
 ):
     try:
-        logging.info("🔄 Processando async: %s - %s...", conversation_id, body[:50])
+        logging.info("Processando async: %s - %s...", conversation_id, body[:50])
+
+        inbound_id = sid or session_id
+        out_msg_id = f"bot:{inbound_id}"
 
         status = (conv_data.get("status") or "bot").lower()
         handoff_active = bool(conv_data.get("handoff_active"))
@@ -295,12 +553,14 @@ def process_message_async(
                 body,
                 user_id=conversation_id,
                 session_params=reset_cx_params if reset_cx_params else None,
+                timeout_s=15.0,
+                attempts=3,
             )
 
             params_dict = cx_all_params_dict(resp)
             if params_dict:
                 logging.info(
-                    "💾 Salvando session_parameters para %s: %s",
+                    "Salvando session_parameters para %s: %s",
                     conversation_id,
                     list(params_dict.keys()),
                 )
@@ -309,8 +569,16 @@ def process_message_async(
         except Exception:
             logging.error("DetectIntent falhou", exc_info=True)
             reply_text = "Certo! Estou processando sua mensagem."
-            repo.add_message_if_new(conversation_id, str(uuid.uuid4()), "out", "bot", reply_text)
-            send_whatsapp_text(frm, reply_text, settings=settings, http_session=http_session)
+            created_out = repo.add_message_if_new(conversation_id, out_msg_id, "out", "bot", reply_text)
+            if created_out:
+                fallback_success = send_whatsapp_text(frm, reply_text, settings=settings, http_session=http_session)
+                if not fallback_success:
+                    logging.error(
+                        "Falha ao enviar fallback para %s out_msg_id=%s inbound_id=%s",
+                        conversation_id,
+                        out_msg_id,
+                        inbound_id,
+                    )
             return
 
         allow_handoff_param = status == "bot" and bool(settings.get("DF_HANDOFF_PARAM"))
@@ -336,14 +604,27 @@ def process_message_async(
         else:
             reply_text = _join_bot_texts(texts) or "Certo! Estou processando sua mensagem."
 
-        repo.add_message_if_new(conversation_id, str(uuid.uuid4()), "out", "bot", reply_text)
+        created_out = repo.add_message_if_new(conversation_id, out_msg_id, "out", "bot", reply_text)
+        if not created_out:
+            logging.info("Resposta do bot ja registrada para inbound_id=%s (skip send)", inbound_id)
+            return
 
         success = send_whatsapp_text(frm, reply_text, settings=settings, http_session=http_session)
 
         if success:
-            logging.info("✅ Resposta enviada com sucesso para %s", conversation_id)
+            logging.info(
+                "Resposta enviada com sucesso para %s out_msg_id=%s inbound_id=%s",
+                conversation_id,
+                out_msg_id,
+                inbound_id,
+            )
         else:
-            logging.error("❌ Falha ao enviar resposta para %s", conversation_id)
+            logging.error(
+                "Falha ao enviar resposta para %s out_msg_id=%s inbound_id=%s",
+                conversation_id,
+                out_msg_id,
+                inbound_id,
+            )
 
     except Exception as exc:
-        logging.error(f"❌ Erro no processamento async: {exc}", exc_info=True)
+        logging.error(f"Erro no processamento async: {exc}", exc_info=True)
