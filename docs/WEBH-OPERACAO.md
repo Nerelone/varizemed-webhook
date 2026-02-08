@@ -85,6 +85,10 @@ Colecoes:
 - `FS_CONV_COLL` (default: `conversations`)
 - `FS_MSG_SUBCOLL` (default: `messages`)
 
+Campos adicionais em `conversations`:
+- `wa_profile_name` (ProfileName do WhatsApp)
+
+
 ## Twilio / WhatsApp
 
 Obrigatorias:
@@ -92,6 +96,14 @@ Obrigatorias:
 - `TWILIO_AUTH_TOKEN_REST`
 - `TWILIO_AUTH_TOKEN` (assinatura do webhook)
 - `TWILIO_WHATSAPP_FROM`
+
+
+
+## ProfileName (WhatsApp)
+
+- O campo `ProfileName` do webhook Twilio e salvo em `conversations.wa_profile_name`.
+- Esse valor e usado pelo CRM para exibir o nome do perfil do WhatsApp.
+- Nao substitui o nome declarado pelo cliente no Dialogflow CX.
 
 ## Variaveis de Ambiente Importantes
 

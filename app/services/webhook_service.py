@@ -124,6 +124,8 @@ def extract_inbound_request(req):
     to = req.form.get("To", "")
     body = req.form.get("Body", "") or ""
     sid = req.form.get("MessageSid")
+    profile_name = (req.form.get("ProfileName") or "").strip()
+    wa_id = (req.form.get("WaId") or "").strip()
 
     try:
         num_media = int(req.form.get("NumMedia", 0))
@@ -154,6 +156,8 @@ def extract_inbound_request(req):
         "to": to,
         "body": body,
         "sid": sid,
+        "profile_name": profile_name,
+        "wa_id": wa_id,
         "media_url": media_url,
         "media_type": media_type,
         "conversation_id": conversation_id,
@@ -379,6 +383,7 @@ def handle_webhook(req, *, settings, repo, cx_client, http_session):
     to = inbound["to"]
     body = inbound["body"]
     sid = inbound["sid"]
+    profile_name = inbound.get("profile_name") or ""
     media_type = inbound["media_type"]
     media_url = inbound["media_url"]
     conversation_id = inbound["conversation_id"]
@@ -393,6 +398,7 @@ def handle_webhook(req, *, settings, repo, cx_client, http_session):
         twilio_sid=sid,
         text=body,
         media_type=media_type,
+        wa_profile_name=profile_name or None,
     )
 
     conv_snap, _existed = repo.ensure_conversation(conversation_id, session_id)
@@ -419,12 +425,15 @@ def handle_webhook(req, *, settings, repo, cx_client, http_session):
         )
         return twiml_empty(status=200)
 
-    repo.update_conversation(
-        conversation_id,
-        last_message_text=body,
-        last_in_from="user",
-        last_inbound_at=firestore.SERVER_TIMESTAMP,
-    )
+    conv_updates = {
+        "last_message_text": body,
+        "last_in_from": "user",
+        "last_inbound_at": firestore.SERVER_TIMESTAMP,
+    }
+    if profile_name:
+        conv_updates["wa_profile_name"] = profile_name
+
+    repo.update_conversation(conversation_id, **conv_updates)
 
     added_to_buffer = _add_to_aggregation_buffer(
         conversation_id=conversation_id,
