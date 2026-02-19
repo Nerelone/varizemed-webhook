@@ -22,6 +22,7 @@ def twiml_empty(status: int = 200) -> Response:
 
 _message_buffers = {}
 _buffers_lock = threading.Lock()
+FALLBACK_STABILITY_TEXT = "Tivemos um problema de estabilidade, pode repetir sua pergunta?"
 
 
 def is_valid_twilio_request(req, auth_token: str) -> bool:
@@ -577,7 +578,7 @@ def process_message_async(
 
         except Exception:
             logging.error("DetectIntent falhou", exc_info=True)
-            reply_text = "Certo! Estou processando sua mensagem."
+            reply_text = FALLBACK_STABILITY_TEXT
             created_out = repo.add_message_if_new(conversation_id, out_msg_id, "out", "bot", reply_text)
             if created_out:
                 fallback_success = send_whatsapp_text(frm, reply_text, settings=settings, http_session=http_session)
@@ -593,11 +594,18 @@ def process_message_async(
         allow_handoff_param = status == "bot" and bool(settings.get("DF_HANDOFF_PARAM"))
         handoff_requested = _handoff_from_cx(resp, texts, allow_param=allow_handoff_param, settings=settings)
 
+        bot_reply_text = _join_bot_texts(texts)
+
         if handoff_requested:
             if settings.get("FEATURE_DISABLE_HANDOFF"):
                 logging.info("CX pediu handoff, mas está desabilitado: %s", conversation_id)
                 log_event("handoff_disabled", conversation_id=conversation_id)
-                reply_text = settings.get("HANDOFF_DISABLED_TEXT") or settings.get("HANDOFF_ACK_TEXT")
+                reply_text = (
+                    settings.get("HANDOFF_DISABLED_TEXT")
+                    or bot_reply_text
+                    or settings.get("HANDOFF_ACK_TEXT")
+                    or FALLBACK_STABILITY_TEXT
+                )
             else:
                 logging.info("CX pediu handoff: %s -> status=pending_handoff", conversation_id)
                 log_event("handoff_pending", conversation_id=conversation_id)
@@ -609,9 +617,13 @@ def process_message_async(
                     assignee_name=None,
                     pending_since=firestore.SERVER_TIMESTAMP,
                 )
-                reply_text = settings.get("HANDOFF_ACK_TEXT")
+                reply_text = (
+                    bot_reply_text
+                    or settings.get("HANDOFF_ACK_TEXT")
+                    or FALLBACK_STABILITY_TEXT
+                )
         else:
-            reply_text = _join_bot_texts(texts) or "Certo! Estou processando sua mensagem."
+            reply_text = bot_reply_text or FALLBACK_STABILITY_TEXT
 
         created_out = repo.add_message_if_new(conversation_id, out_msg_id, "out", "bot", reply_text)
         if not created_out:

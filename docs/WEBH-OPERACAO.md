@@ -1,5 +1,7 @@
 # WEBH - Manual de Operacao e Administracao
 
+Ultima atualizacao: 2026-02-19
+
 Este documento descreve como o servico webh esta organizado, como configurar ambiente, e como fazer deploy em staging.
 
 ## Visao Geral
@@ -79,6 +81,21 @@ Retry:
 - `detect_intent_text` tenta ate 3 vezes por erros transitorios (500/503/timeout).
 - Backoff exponencial com jitter.
 
+### Handoff (regra atual)
+- Deteccao de handoff considera:
+  - `DF_HANDOFF_MARKER` no texto.
+  - frases de `DF_HANDOFF_TEXT_HINTS` (substring, case-insensitive).
+  - payload custom com `handoff=true`.
+  - parametros de sessao (`handoff_request` e `handoff_requested`).
+- Quando handoff e detectado com handoff habilitado:
+  - conversa vai para `pending_handoff`.
+  - resposta enviada ao usuario prioriza o texto retornado pelo CX.
+  - `HANDOFF_ACK_TEXT` e fallback somente se o CX nao retornar texto.
+- Quando handoff esta desabilitado (`FEATURE_DISABLE_HANDOFF=true`):
+  - prioridade de resposta: `HANDOFF_DISABLED_TEXT` -> texto do CX -> `HANDOFF_ACK_TEXT`.
+- Se CX falhar apos retries:
+  - fallback enviado: `Tivemos um problema de estabilidade, pode repetir sua pergunta?`
+
 ## Firestore
 
 Colecoes:
@@ -108,15 +125,25 @@ Obrigatorias:
 ## Variaveis de Ambiente Importantes
 
 Principais (alem das obrigatorias):
-- `DF_HANDOFF_PARAM`
+- `DF_HANDOFF_PARAM` (valor esperado: `handoff_request`)
 - `DF_HANDOFF_MARKER`
-- `DF_HANDOFF_TEXT_HINTS`
-- `HANDOFF_ACK_TEXT`
+- `DF_HANDOFF_TEXT_HINTS` (CSV separado por virgula; usado como dicas de substring)
+- `HANDOFF_ACK_TEXT` (fallback para handoff sem texto vindo do CX)
 - `HANDOFF_DISABLED_TEXT`
 - `FEATURE_DISABLE_HANDOFF`
 - `FEATURE_FORCE_BOT_WHEN_HANDOFF_DISABLED`
 - `TWILIO_POST_RETRY_ATTEMPTS` (default: 2)
 - `TWILIO_POST_RETRY_BACKOFF_SECONDS` (default: 0.3)
+
+Observacao importante sobre `DF_HANDOFF_TEXT_HINTS`:
+- Como o valor e CSV, evite virgulas dentro de cada frase.
+- Se precisar atualizar por CLI com varias frases, prefira delimitador alternativo:
+```powershell
+gcloud run services update webh `
+  --project=val-02-469714 `
+  --region=southamerica-east1 `
+  --update-env-vars "^@^DF_HANDOFF_TEXT_HINTS=frase 1,frase 2,frase 3"
+```
 
 O arquivo `env.staging.yaml` serve como referencia de staging.
 

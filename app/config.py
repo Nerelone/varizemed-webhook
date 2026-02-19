@@ -44,7 +44,7 @@ class BaseConfig:
     DF_AGENT_ID = os.getenv("DF_AGENT_ID", "").strip()
     LANG_CODE = os.getenv("DF_LANG_CODE", "pt-br").strip()
 
-    DF_HANDOFF_PARAM = (os.getenv("DF_HANDOFF_PARAM", "handoff_requested") or "").strip()
+    DF_HANDOFF_PARAM = (os.getenv("DF_HANDOFF_PARAM", "handoff_request") or "").strip()
     DF_HANDOFF_MARKER = os.getenv("DF_HANDOFF_MARKER", "##HANDOFF_TRIGGER##")
     FEATURE_AUTOREPLY_DURING_PENDING = _bool_env("FEATURE_AUTOREPLY_DURING_PENDING", "false")
     HANDOFF_ACK_TEXT = os.getenv(
