@@ -1,0 +1,51 @@
+# Python cache and artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Python tooling cache
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+
+# Logs
+*.log
+logs/
+
+# Local environment files
+.env
+.env.*
+*.local
+env.*.yaml
+!env.example.yaml
+!env.*.example.yaml
+
+# Local databases and runtime data
+*.sqlite
+*.sqlite3
+instance/
+
+# IDE/editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db

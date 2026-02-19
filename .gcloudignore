@@ -1,0 +1,25 @@
+# Files excluded from Cloud Build source upload (`gcloud run deploy --source`).
+
+# gcloud metadata and VCS internals
+.gcloudignore
+.git
+.gitignore
+
+# Never upload local dependencies and caches
+.venv/
+venv/
+env/
+ENV/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+env.*.yaml
+!env.example.yaml
+!env.*.example.yaml
+
+# Not needed at runtime in Cloud Run image
+docs/
+tests/
+
+# Reuse local ignore rules
+#!include:.gitignore

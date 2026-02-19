@@ -145,7 +145,7 @@ gcloud run services update webh `
   --update-env-vars "^@^DF_HANDOFF_TEXT_HINTS=frase 1,frase 2,frase 3"
 ```
 
-O arquivo `env.staging.yaml` serve como referencia de staging.
+Use `env.staging.example.yaml` como referencia de staging e mantenha `env.staging.yaml` apenas local (nao versionado).
 
 ## Deploy (Cloud Run)
 
@@ -154,7 +154,12 @@ O arquivo `env.staging.yaml` serve como referencia de staging.
 cd webh
 ```
 
-2) Deploy (exemplo):
+2) Gere o arquivo local de env (uma vez, depois ajuste valores):
+```powershell
+Copy-Item env.staging.example.yaml env.staging.yaml
+```
+
+3) Deploy (exemplo):
 ```powershell
 gcloud run deploy webh-staging `
   --source . `
