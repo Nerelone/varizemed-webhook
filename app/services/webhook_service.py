@@ -8,7 +8,7 @@ from twilio.request_validator import RequestValidator
 from google.cloud import firestore
 
 from app.core.logging import log_event
-from app.services.cx_service import cx_all_params_dict, detect_intent_text, struct_to_dict
+from app.services.cx_service import cx_all_params_dict, detect_intent_text
 from app.services.twilio_service import send_whatsapp_text
 
 
@@ -77,35 +77,25 @@ def _bool_setting(settings, key, default=False) -> bool:
     return _is_truthy(settings.get(key))
 
 
+def _normalize_for_exact_match(text: str) -> str:
+    return " ".join((text or "").split()).casefold()
+
+
 def _handoff_from_cx(resp, texts, allow_param: bool, settings) -> bool:
     try:
-        marker = settings.get("DF_HANDOFF_MARKER") or ""
-        if any((marker in (t or "")) for t in texts):
-            return True
-
         for text in texts or []:
-            text_norm = (text or "").casefold()
+            text_norm = _normalize_for_exact_match(text)
             for hint in settings.get("DF_HANDOFF_TEXT_HINTS", []):
-                if hint and hint in text_norm:
+                if hint and text_norm == hint:
+                    logging.info("Handoff detectado via hint exato.")
                     return True
-
-        for msg in resp.query_result.response_messages:
-            try:
-                if msg.payload:
-                    payload_dict = struct_to_dict(msg.payload)
-                    if _is_truthy(payload_dict.get("handoff")):
-                        return True
-            except Exception:
-                pass
 
         if allow_param:
             sp_dict = cx_all_params_dict(resp)
-            for key in [settings.get("DF_HANDOFF_PARAM"), "handoff_request", "handoff_requested"]:
-                if not key:
-                    continue
-                if _is_truthy(sp_dict.get(key)):
-                    logging.info("Handoff detectado via parametro %s: %s", key, sp_dict.get(key))
-                    return True
+            key = settings.get("DF_HANDOFF_PARAM")
+            if key and _is_truthy(sp_dict.get(key)):
+                logging.info("Handoff detectado via parametro %s: %s", key, sp_dict.get(key))
+                return True
 
     except Exception:
         pass
@@ -563,8 +553,8 @@ def process_message_async(
                 body,
                 user_id=conversation_id,
                 session_params=reset_cx_params if reset_cx_params else None,
-                timeout_s=15.0,
-                attempts=3,
+                timeout_s=float(settings.get("CX_TIMEOUT_SECONDS", 15.0)),
+                attempts=int(settings.get("CX_RETRY_ATTEMPTS", 3)),
             )
 
             params_dict = cx_all_params_dict(resp)

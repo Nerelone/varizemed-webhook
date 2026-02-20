@@ -1,0 +1,161 @@
+﻿Logs WEBH - Investigacao 4 numeros
+Gerado em: 
+2026-02-19 23:00:14 -03:00
+Projeto GCP: val-02-469714
+Servico: webh (Cloud Run)
+Periodo: ultimos 30 dias
+
+==========================================================================================
+NUMERO: +553198456216
+==========================================================================================
+
+2026-02-19T21:27:43.477895Z	2026-02-19 21:27:43,478 INFO: Inbound: from=whatsapp:+553198456216 sid=SM1b20ea0f22ab5d6ccf354a271ed82ab6 body='Olá! Tenho interesse no tratamento de varizes e  q'
+2026-02-19T21:27:43.478036Z	2026-02-19 21:27:43,478 INFO: {"component": "webh", "action": "inbound", "conversation_id": "+553198456216", "from_": "whatsapp:+553198456216", "to": "whatsapp:+553123915744", "twilio_sid": "SM1b20ea0f22ab5d6ccf354a271ed82ab6", "text": "Olá! Tenho interesse no tratamento de varizes e  queria mais informações.", "wa_profile_name": "Erica Oliveira"}
+2026-02-19T21:27:44.580220Z	2026-02-19 21:27:44,581 INFO: Mensagem 1 adicionada ao buffer de +553198456216. Delay: 5.0s. Texto: 'Olá! Tenho interesse no tratamento de varizes e  q'
+2026-02-19T21:27:49.581006Z	2026-02-19 21:27:49,581 INFO: Processando 1 mensagens agregadas para +553198456216: 'Olá! Tenho interesse no tratamento de varizes e  queria mais informações.'
+2026-02-19T21:27:49.581554Z	2026-02-19 21:27:49,582 INFO: {"component": "webh", "action": "aggregated_messages", "conversation_id": "+553198456216", "message_count": 1, "aggregated_text": "Olá! Tenho interesse no tratamento de varizes e  queria mais informações."}
+2026-02-19T21:27:49.581573Z	2026-02-19 21:27:49,582 INFO: Processando async: +553198456216 - Olá! Tenho interesse no tratamento de varizes e  q...
+2026-02-19T21:27:49.581580Z	2026-02-19 21:27:49,582 INFO: CX QueryParams: user_id=+553198456216, extras=None
+2026-02-19T21:28:12.769768Z	2026-02-19 21:28:12,770 INFO: Salvando session_parameters para +553198456216: ['is_business_hours', 'user_id', 'user_symptom', 'has_greeted', 'conversation_start_time']
+2026-02-19T21:28:13.669405Z	2026-02-19 21:28:13,652 INFO: CX pediu handoff: +553198456216 -> status=pending_handoff
+2026-02-19T21:28:13.669524Z	2026-02-19 21:28:13,670 INFO: {"component": "webh", "action": "handoff_pending", "conversation_id": "+553198456216"}
+2026-02-19T21:28:17.769187Z	2026-02-19 21:28:17,469 INFO: Enviado via REST: SID=SMcef4b118082d9ef9d34ebcefe36200ae para whatsapp:+553198456216
+2026-02-19T21:28:17.769321Z	2026-02-19 21:28:17,769 INFO: Resposta enviada com sucesso para +553198456216 out_msg_id=bot:agg:SM1b20ea0f22ab5d6ccf354a271ed82ab6:1 inbound_id=agg:SM1b20ea0f22ab5d6ccf354a271ed82ab6:1
+2026-02-19T21:28:48.923851Z	2026-02-19 21:28:48,924 INFO: Inbound: from=whatsapp:+553198456216 sid=SMe3ffa9b1cd340870ae0697dd31373b2a body='Érica Oliveira'
+2026-02-19T21:28:48.923943Z	2026-02-19 21:28:48,924 INFO: {"component": "webh", "action": "inbound", "conversation_id": "+553198456216", "from_": "whatsapp:+553198456216", "to": "whatsapp:+553123915744", "twilio_sid": "SMe3ffa9b1cd340870ae0697dd31373b2a", "text": "Érica Oliveira", "wa_profile_name": "Erica Oliveira"}
+2026-02-19T21:28:49.653282Z	2026-02-19 21:28:49,653 INFO: Mensagem 1 adicionada ao buffer de +553198456216. Delay: 5.0s. Texto: 'Érica Oliveira'
+2026-02-19T21:28:54.654220Z	2026-02-19 21:28:54,655 INFO: Processando 1 mensagens agregadas para +553198456216: 'Érica Oliveira'
+2026-02-19T21:28:54.654298Z	2026-02-19 21:28:54,655 INFO: {"component": "webh", "action": "aggregated_messages", "conversation_id": "+553198456216", "message_count": 1, "aggregated_text": "Érica Oliveira"}
+2026-02-19T21:28:54.654364Z	2026-02-19 21:28:54,655 INFO: Processando async: +553198456216 - Érica Oliveira...
+2026-02-19T21:28:54.654427Z	2026-02-19 21:28:54,656 INFO: Handoff mode (pending_handoff): sem resposta automática para +553198456216
+2026-02-19T21:29:31.817917Z	2026-02-19 21:29:31,819 INFO: Inbound: from=whatsapp:+553198456216 sid=SM1e3bf72a3e979a09bfbc587f3c0cb959 body='Gostaria de saber aparti de quanto está as secções'
+2026-02-19T21:29:31.818001Z	2026-02-19 21:29:31,819 INFO: {"component": "webh", "action": "inbound", "conversation_id": "+553198456216", "from_": "whatsapp:+553198456216", "to": "whatsapp:+553123915744", "twilio_sid": "SM1e3bf72a3e979a09bfbc587f3c0cb959", "text": "Gostaria de saber aparti de quanto está as secções", "wa_profile_name": "Erica Oliveira"}
+2026-02-19T21:29:32.499909Z	2026-02-19 21:29:32,500 INFO: Mensagem 1 adicionada ao buffer de +553198456216. Delay: 5.0s. Texto: 'Gostaria de saber aparti de quanto está as secções'
+2026-02-19T21:29:37.501994Z	2026-02-19 21:29:37,502 INFO: Processando 1 mensagens agregadas para +553198456216: 'Gostaria de saber aparti de quanto está as secções'
+2026-02-19T21:29:37.502084Z	2026-02-19 21:29:37,502 INFO: {"component": "webh", "action": "aggregated_messages", "conversation_id": "+553198456216", "message_count": 1, "aggregated_text": "Gostaria de saber aparti de quanto está as secções"}
+2026-02-19T21:29:37.502135Z	2026-02-19 21:29:37,502 INFO: Processando async: +553198456216 - Gostaria de saber aparti de quanto está as secções...
+2026-02-19T21:29:37.502217Z	2026-02-19 21:29:37,502 INFO: Handoff mode (pending_handoff): sem resposta automática para +553198456216
+
+==========================================================================================
+NUMERO: +553191874558
+==========================================================================================
+
+2026-02-14T20:21:51.287336Z	2026-02-14 20:21:51,289 INFO: Inbound: from=whatsapp:+553191874558 sid=SM79e964f6bdd420e2c10d5df31ab54ac0 body='Olá! Tenho interesse no tratamento de hemorróidas '
+2026-02-14T20:21:51.287427Z	2026-02-14 20:21:51,289 INFO: {"component": "webh", "action": "inbound", "conversation_id": "+553191874558", "from_": "whatsapp:+553191874558", "to": "whatsapp:+553123915744", "twilio_sid": "SM79e964f6bdd420e2c10d5df31ab54ac0", "text": "Olá! Tenho interesse no tratamento de hemorróidas e  queria mais informações.", "wa_profile_name": "Patty Carla"}
+2026-02-14T20:21:54.255047Z	2026-02-14 20:21:54,255 INFO: Mensagem 1 adicionada ao buffer de +553191874558. Delay: 5.0s. Texto: 'Olá! Tenho interesse no tratamento de hemorróidas '
+2026-02-14T20:21:59.256439Z	2026-02-14 20:21:59,256 INFO: Processando 1 mensagens agregadas para +553191874558: 'Olá! Tenho interesse no tratamento de hemorróidas e  queria mais informações.'
+2026-02-14T20:21:59.256533Z	2026-02-14 20:21:59,257 INFO: {"component": "webh", "action": "aggregated_messages", "conversation_id": "+553191874558", "message_count": 1, "aggregated_text": "Olá! Tenho interesse no tratamento de hemorróidas e  queria mais informações."}
+2026-02-14T20:21:59.256589Z	2026-02-14 20:21:59,257 INFO: Processando async: +553191874558 - Olá! Tenho interesse no tratamento de hemorróidas ...
+2026-02-14T20:21:59.256759Z	2026-02-14 20:21:59,257 INFO: CX QueryParams: user_id=+553191874558, extras=None
+2026-02-14T20:22:06.510563Z	2026-02-14 20:22:06,511 INFO: Salvando session_parameters para +553191874558: ['user_id']
+2026-02-14T20:22:29.588670Z	2026-02-14 20:22:29,588 INFO: Enviado via REST: SID=SM6cc6e0f24e6919bfc13dce624a67b73e para whatsapp:+553191874558
+2026-02-14T20:22:29.588718Z	2026-02-14 20:22:29,589 INFO: Resposta enviada com sucesso para +553191874558 out_msg_id=bot:agg:SM79e964f6bdd420e2c10d5df31ab54ac0:1 inbound_id=agg:SM79e964f6bdd420e2c10d5df31ab54ac0:1
+2026-02-19T13:36:26.599331Z	2026-02-19 13:36:26,600 INFO: Inbound: from=whatsapp:+553191874558 sid=SM0183c361cab85ea7ea1fdbdeec85e45f body='ola'
+2026-02-19T13:36:26.599504Z	2026-02-19 13:36:26,600 INFO: {"component": "webh", "action": "inbound", "conversation_id": "+553191874558", "from_": "whatsapp:+553191874558", "to": "whatsapp:+553123915744", "twilio_sid": "SM0183c361cab85ea7ea1fdbdeec85e45f", "text": "ola", "wa_profile_name": "Patty Carla"}
+2026-02-19T13:36:28.648507Z	2026-02-19 13:36:28,649 INFO: Mensagem 1 adicionada ao buffer de +553191874558. Delay: 5.0s. Texto: 'ola'
+2026-02-19T13:36:33.650223Z	2026-02-19 13:36:33,651 INFO: Processando 1 mensagens agregadas para +553191874558: 'ola'
+2026-02-19T13:36:33.650357Z	2026-02-19 13:36:33,651 INFO: {"component": "webh", "action": "aggregated_messages", "conversation_id": "+553191874558", "message_count": 1, "aggregated_text": "ola"}
+2026-02-19T13:36:33.650428Z	2026-02-19 13:36:33,651 INFO: Processando async: +553191874558 - ola...
+2026-02-19T13:36:33.650595Z	2026-02-19 13:36:33,651 INFO: CX QueryParams: user_id=+553191874558, extras=None
+2026-02-19T13:36:49.485200Z	2026-02-19 13:36:47,791 WARNING: CX detect_intent transitorio (InternalServerError) tentativa 1/3 timeout=15.0s sleep=0.50s session_id=553191874558
+2026-02-19T13:37:01.084798Z	2026-02-19 13:37:00,985 INFO: Salvando session_parameters para +553191874558: ['is_business_hours', 'user_id', 'has_greeted', 'conversation_start_time']
+2026-02-19T13:37:21.085071Z	2026-02-19 13:37:21,085 INFO: Enviado via REST: SID=SMc06e3cc9583066b1b1d547796f769d08 para whatsapp:+553191874558
+2026-02-19T13:37:21.085189Z	2026-02-19 13:37:21,086 INFO: Resposta enviada com sucesso para +553191874558 out_msg_id=bot:agg:SM0183c361cab85ea7ea1fdbdeec85e45f:1 inbound_id=agg:SM0183c361cab85ea7ea1fdbdeec85e45f:1
+2026-02-19T20:56:05.428241Z	2026-02-19 20:56:05,429 INFO: Inbound: from=whatsapp:+553191874558 sid=SM7b39703d4f6f72853dd2b577f4bf0bcc body='Ola'
+2026-02-19T20:56:05.428367Z	2026-02-19 20:56:05,429 INFO: {"component": "webh", "action": "inbound", "conversation_id": "+553191874558", "from_": "whatsapp:+553191874558", "to": "whatsapp:+553123915744", "twilio_sid": "SM7b39703d4f6f72853dd2b577f4bf0bcc", "text": "Ola", "wa_profile_name": "Patty Carla"}
+2026-02-19T20:56:07.455839Z	2026-02-19 20:56:07,456 INFO: Mensagem 1 adicionada ao buffer de +553191874558. Delay: 5.0s. Texto: 'Ola'
+2026-02-19T20:56:12.502613Z	2026-02-19 20:56:12,503 INFO: Processando 1 mensagens agregadas para +553191874558: 'Ola'
+2026-02-19T20:56:12.502731Z	2026-02-19 20:56:12,503 INFO: {"component": "webh", "action": "aggregated_messages", "conversation_id": "+553191874558", "message_count": 1, "aggregated_text": "Ola"}
+2026-02-19T20:56:12.502789Z	2026-02-19 20:56:12,503 INFO: Processando async: +553191874558 - Ola...
+2026-02-19T20:56:12.502965Z	2026-02-19 20:56:12,503 INFO: CX QueryParams: user_id=+553191874558, extras=None
+2026-02-19T20:56:39.402957Z	2026-02-19 20:56:39,403 INFO: Salvando session_parameters para +553191874558: ['is_business_hours', 'user_id', 'conversation_start_time', 'has_greeted']
+2026-02-19T20:57:00.203021Z	2026-02-19 20:57:00,203 INFO: Enviado via REST: SID=SM693f8a6b8a73b92dab81446c611aef79 para whatsapp:+553191874558
+2026-02-19T20:57:00.402336Z	2026-02-19 20:57:00,303 INFO: Resposta enviada com sucesso para +553191874558 out_msg_id=bot:agg:SM7b39703d4f6f72853dd2b577f4bf0bcc:1 inbound_id=agg:SM7b39703d4f6f72853dd2b577f4bf0bcc:1
+2026-02-19T20:57:17.749568Z	2026-02-19 20:57:17,750 INFO: Inbound: from=whatsapp:+553191874558 sid=SM90822cb1c9b03eb46fca1172291a9130 body='Patricia'
+2026-02-19T20:57:17.749718Z	2026-02-19 20:57:17,750 INFO: {"component": "webh", "action": "inbound", "conversation_id": "+553191874558", "from_": "whatsapp:+553191874558", "to": "whatsapp:+553123915744", "twilio_sid": "SM90822cb1c9b03eb46fca1172291a9130", "text": "Patricia", "wa_profile_name": "Patty Carla"}
+2026-02-19T20:57:19.486040Z	2026-02-19 20:57:19,486 INFO: Mensagem 1 adicionada ao buffer de +553191874558. Delay: 5.0s. Texto: 'Patricia'
+2026-02-19T20:57:24.502243Z	2026-02-19 20:57:24,488 INFO: Processando 1 mensagens agregadas para +553191874558: 'Patricia'
+2026-02-19T20:57:24.502461Z	2026-02-19 20:57:24,503 INFO: {"component": "webh", "action": "aggregated_messages", "conversation_id": "+553191874558", "message_count": 1, "aggregated_text": "Patricia"}
+2026-02-19T20:57:24.502533Z	2026-02-19 20:57:24,503 INFO: Processando async: +553191874558 - Patricia...
+2026-02-19T20:57:24.502691Z	2026-02-19 20:57:24,503 INFO: CX QueryParams: user_id=+553191874558, extras=None
+2026-02-19T20:57:36.561600Z	2026-02-19 20:57:36,562 INFO: Salvando session_parameters para +553191874558: ['is_business_hours', 'user_id', 'conversation_start_time', 'has_greeted']
+2026-02-19T20:57:40.202907Z	2026-02-19 20:57:40,203 INFO: Enviado via REST: SID=SMd8f5e4c700c4653d2629b90084f47b1e para whatsapp:+553191874558
+2026-02-19T20:57:40.202974Z	2026-02-19 20:57:40,203 INFO: Resposta enviada com sucesso para +553191874558 out_msg_id=bot:agg:SM90822cb1c9b03eb46fca1172291a9130:1 inbound_id=agg:SM90822cb1c9b03eb46fca1172291a9130:1
+2026-02-19T21:02:30.606898Z	2026-02-19 21:02:30,607 INFO: Inbound: from=whatsapp:+553191874558 sid=SM622d6858d71d9bca0bbb598da34e442e body='Sim'
+2026-02-19T21:02:30.607007Z	2026-02-19 21:02:30,607 INFO: {"component": "webh", "action": "inbound", "conversation_id": "+553191874558", "from_": "whatsapp:+553191874558", "to": "whatsapp:+553123915744", "twilio_sid": "SM622d6858d71d9bca0bbb598da34e442e", "text": "Sim", "wa_profile_name": "Patty Carla"}
+2026-02-19T21:02:31.351984Z	2026-02-19 21:02:31,353 INFO: Mensagem 1 adicionada ao buffer de +553191874558. Delay: 5.0s. Texto: 'Sim'
+2026-02-19T21:02:36.353605Z	2026-02-19 21:02:36,354 INFO: Processando 1 mensagens agregadas para +553191874558: 'Sim'
+2026-02-19T21:02:36.353693Z	2026-02-19 21:02:36,354 INFO: {"component": "webh", "action": "aggregated_messages", "conversation_id": "+553191874558", "message_count": 1, "aggregated_text": "Sim"}
+2026-02-19T21:02:36.353734Z	2026-02-19 21:02:36,354 INFO: Processando async: +553191874558 - Sim...
+2026-02-19T21:02:36.353895Z	2026-02-19 21:02:36,355 INFO: CX QueryParams: user_id=+553191874558, extras={'user_name': 'Patricia'}
+2026-02-19T21:02:37.432900Z	2026-02-19 21:02:37,433 INFO: Inbound: from=whatsapp:+553191874558 sid=SM9c28c171e1f0d7901ac8ff40691958f8 body='Tratamento de hemorroidas'
+2026-02-19T21:02:37.433047Z	2026-02-19 21:02:37,433 INFO: {"component": "webh", "action": "inbound", "conversation_id": "+553191874558", "from_": "whatsapp:+553191874558", "to": "whatsapp:+553123915744", "twilio_sid": "SM9c28c171e1f0d7901ac8ff40691958f8", "text": "Tratamento de hemorroidas", "wa_profile_name": "Patty Carla"}
+2026-02-19T21:02:38.126192Z	2026-02-19 21:02:38,126 INFO: Mensagem 1 adicionada ao buffer de +553191874558. Delay: 5.0s. Texto: 'Tratamento de hemorroidas'
+2026-02-19T21:02:39.203050Z	2026-02-19 21:02:39,203 INFO: Salvando session_parameters para +553191874558: ['is_business_hours', 'user_id', 'has_greeted', 'user_name', 'conversation_start_time']
+2026-02-19T21:02:41.102288Z	2026-02-19 21:02:41,002 INFO: CX pediu handoff: +553191874558 -> status=pending_handoff
+2026-02-19T21:02:41.102625Z	2026-02-19 21:02:41,102 INFO: {"component": "webh", "action": "handoff_pending", "conversation_id": "+553191874558"}
+2026-02-19T21:02:43.202835Z	2026-02-19 21:02:43,203 INFO: Processando 1 mensagens agregadas para +553191874558: 'Tratamento de hemorroidas'
+2026-02-19T21:02:43.202966Z	2026-02-19 21:02:43,203 INFO: {"component": "webh", "action": "aggregated_messages", "conversation_id": "+553191874558", "message_count": 1, "aggregated_text": "Tratamento de hemorroidas"}
+2026-02-19T21:02:43.203041Z	2026-02-19 21:02:43,203 INFO: Processando async: +553191874558 - Tratamento de hemorroidas...
+2026-02-19T21:02:43.402581Z	2026-02-19 21:02:43,303 INFO: CX QueryParams: user_id=+553191874558, extras={'user_name': 'Patricia'}
+2026-02-19T21:02:44.702585Z	2026-02-19 21:02:44,703 INFO: Enviado via REST: SID=SM4e240730e481d98eeb01b07ba3170e49 para whatsapp:+553191874558
+2026-02-19T21:02:44.702693Z	2026-02-19 21:02:44,703 INFO: Resposta enviada com sucesso para +553191874558 out_msg_id=bot:agg:SM622d6858d71d9bca0bbb598da34e442e:1 inbound_id=agg:SM622d6858d71d9bca0bbb598da34e442e:1
+2026-02-19T21:02:48.635763Z	2026-02-19 21:02:48,636 INFO: Salvando session_parameters para +553191874558: ['is_business_hours', 'user_id', 'has_greeted', 'user_name', 'conversation_start_time']
+2026-02-19T21:02:51.902594Z	2026-02-19 21:02:51,903 INFO: Enviado via REST: SID=SMbc537e3dbbc642e894f124e6428cbb9e para whatsapp:+553191874558
+2026-02-19T21:02:52.002241Z	2026-02-19 21:02:51,903 INFO: Resposta enviada com sucesso para +553191874558 out_msg_id=bot:agg:SM9c28c171e1f0d7901ac8ff40691958f8:1 inbound_id=agg:SM9c28c171e1f0d7901ac8ff40691958f8:1
+2026-02-19T21:03:15.363260Z	2026-02-19 21:03:15,363 INFO: Inbound: from=whatsapp:+553191874558 sid=SM7da7a56e4622ae85c0c47f2fbf160731 body='Ams vale'
+2026-02-19T21:03:15.363342Z	2026-02-19 21:03:15,363 INFO: {"component": "webh", "action": "inbound", "conversation_id": "+553191874558", "from_": "whatsapp:+553191874558", "to": "whatsapp:+553123915744", "twilio_sid": "SM7da7a56e4622ae85c0c47f2fbf160731", "text": "Ams vale", "wa_profile_name": "Patty Carla"}
+2026-02-19T21:03:16.031432Z	2026-02-19 21:03:16,032 INFO: Mensagem 1 adicionada ao buffer de +553191874558. Delay: 5.0s. Texto: 'Ams vale'
+2026-02-19T21:03:21.034283Z	2026-02-19 21:03:21,035 INFO: Processando 1 mensagens agregadas para +553191874558: 'Ams vale'
+2026-02-19T21:03:21.034386Z	2026-02-19 21:03:21,035 INFO: {"component": "webh", "action": "aggregated_messages", "conversation_id": "+553191874558", "message_count": 1, "aggregated_text": "Ams vale"}
+2026-02-19T21:03:21.034425Z	2026-02-19 21:03:21,035 INFO: Processando async: +553191874558 - Ams vale...
+2026-02-19T21:03:21.034486Z	2026-02-19 21:03:21,035 INFO: Handoff mode (pending_handoff): sem resposta automática para +553191874558
+2026-02-19T21:03:34.010040Z	2026-02-19 21:03:34,011 INFO: Inbound: from=whatsapp:+553191874558 sid=SM97b925edbebd946e4e485e5594467a80 body='Como é feito o tratamento'
+2026-02-19T21:03:34.010195Z	2026-02-19 21:03:34,011 INFO: {"component": "webh", "action": "inbound", "conversation_id": "+553191874558", "from_": "whatsapp:+553191874558", "to": "whatsapp:+553123915744", "twilio_sid": "SM97b925edbebd946e4e485e5594467a80", "text": "Como é feito o tratamento", "wa_profile_name": "Patty Carla"}
+2026-02-19T21:03:34.681741Z	2026-02-19 21:03:34,683 INFO: Mensagem 1 adicionada ao buffer de +553191874558. Delay: 5.0s. Texto: 'Como é feito o tratamento'
+2026-02-19T21:03:39.683618Z	2026-02-19 21:03:39,684 INFO: Processando 1 mensagens agregadas para +553191874558: 'Como é feito o tratamento'
+2026-02-19T21:03:39.683715Z	2026-02-19 21:03:39,684 INFO: {"component": "webh", "action": "aggregated_messages", "conversation_id": "+553191874558", "message_count": 1, "aggregated_text": "Como é feito o tratamento"}
+2026-02-19T21:03:39.683764Z	2026-02-19 21:03:39,684 INFO: Processando async: +553191874558 - Como é feito o tratamento...
+2026-02-19T21:03:39.683824Z	2026-02-19 21:03:39,684 INFO: Handoff mode (pending_handoff): sem resposta automática para +553191874558
+
+==========================================================================================
+NUMERO: +553186734911
+==========================================================================================
+
+2026-02-19T21:00:00.138766Z	2026-02-19 21:00:00,139 INFO: Inbound: from=whatsapp:+553186734911 sid=SM372c51311026397df804746f6545ac56 body='Olá! Tenho interesse no tratamento de varizes e  q'
+2026-02-19T21:00:00.138940Z	2026-02-19 21:00:00,139 INFO: {"component": "webh", "action": "inbound", "conversation_id": "+553186734911", "from_": "whatsapp:+553186734911", "to": "whatsapp:+553123915744", "twilio_sid": "SM372c51311026397df804746f6545ac56", "text": "Olá! Tenho interesse no tratamento de varizes e  queria mais informações.", "wa_profile_name": "Flavia Monteiro"}
+2026-02-19T21:00:01.262989Z	2026-02-19 21:00:01,263 INFO: Mensagem 1 adicionada ao buffer de +553186734911. Delay: 5.0s. Texto: 'Olá! Tenho interesse no tratamento de varizes e  q'
+2026-02-19T21:00:06.264410Z	2026-02-19 21:00:06,265 INFO: Processando 1 mensagens agregadas para +553186734911: 'Olá! Tenho interesse no tratamento de varizes e  queria mais informações.'
+2026-02-19T21:00:06.264520Z	2026-02-19 21:00:06,265 INFO: {"component": "webh", "action": "aggregated_messages", "conversation_id": "+553186734911", "message_count": 1, "aggregated_text": "Olá! Tenho interesse no tratamento de varizes e  queria mais informações."}
+2026-02-19T21:00:06.264592Z	2026-02-19 21:00:06,265 INFO: Processando async: +553186734911 - Olá! Tenho interesse no tratamento de varizes e  q...
+2026-02-19T21:00:06.264776Z	2026-02-19 21:00:06,265 INFO: CX QueryParams: user_id=+553186734911, extras=None
+2026-02-19T21:00:31.703737Z	2026-02-19 21:00:31,704 INFO: Salvando session_parameters para +553186734911: ['is_business_hours', 'user_id', 'user_symptom', 'has_greeted', 'conversation_start_time']
+2026-02-19T21:00:33.002571Z	2026-02-19 21:00:33,003 INFO: CX pediu handoff: +553186734911 -> status=pending_handoff
+2026-02-19T21:00:33.202454Z	2026-02-19 21:00:33,103 INFO: {"component": "webh", "action": "handoff_pending", "conversation_id": "+553186734911"}
+2026-02-19T21:00:36.902818Z	2026-02-19 21:00:36,903 INFO: Enviado via REST: SID=SM2aa31d97b36cbe22f8cf784d1af129fa para whatsapp:+553186734911
+2026-02-19T21:00:36.902904Z	2026-02-19 21:00:36,903 INFO: Resposta enviada com sucesso para +553186734911 out_msg_id=bot:agg:SM372c51311026397df804746f6545ac56:1 inbound_id=agg:SM372c51311026397df804746f6545ac56:1
+
+==========================================================================================
+NUMERO: +553185383104
+==========================================================================================
+
+2026-02-19T20:32:33.793693Z	2026-02-19 20:32:33,795 INFO: Inbound: from=whatsapp:+553185383104 sid=SM7f1f340f2c3cf3f7e85a1e82ebab14d4 body='Olá! Tenho interesse no tratamento de varizes e  q'
+2026-02-19T20:32:33.793823Z	2026-02-19 20:32:33,795 INFO: {"component": "webh", "action": "inbound", "conversation_id": "+553185383104", "from_": "whatsapp:+553185383104", "to": "whatsapp:+553123915744", "twilio_sid": "SM7f1f340f2c3cf3f7e85a1e82ebab14d4", "text": "Olá! Tenho interesse no tratamento de varizes e  queria mais informações.", "wa_profile_name": "😊"}
+2026-02-19T20:32:36.423907Z	2026-02-19 20:32:36,424 INFO: Mensagem 1 adicionada ao buffer de +553185383104. Delay: 5.0s. Texto: 'Olá! Tenho interesse no tratamento de varizes e  q'
+2026-02-19T20:32:41.425451Z	2026-02-19 20:32:41,425 INFO: Processando 1 mensagens agregadas para +553185383104: 'Olá! Tenho interesse no tratamento de varizes e  queria mais informações.'
+2026-02-19T20:32:41.425540Z	2026-02-19 20:32:41,426 INFO: {"component": "webh", "action": "aggregated_messages", "conversation_id": "+553185383104", "message_count": 1, "aggregated_text": "Olá! Tenho interesse no tratamento de varizes e  queria mais informações."}
+2026-02-19T20:32:41.425605Z	2026-02-19 20:32:41,426 INFO: Processando async: +553185383104 - Olá! Tenho interesse no tratamento de varizes e  q...
+2026-02-19T20:32:41.425763Z	2026-02-19 20:32:41,426 INFO: CX QueryParams: user_id=+553185383104, extras=None
+2026-02-19T20:33:06.802870Z	2026-02-19 20:33:06,802 INFO: Salvando session_parameters para +553185383104: ['is_business_hours', 'user_id', 'user_symptom', 'conversation_start_time', 'has_greeted']
+2026-02-19T20:33:07.602376Z	2026-02-19 20:33:07,603 INFO: CX pediu handoff: +553185383104 -> status=pending_handoff
+2026-02-19T20:33:08.102245Z	2026-02-19 20:33:07,803 INFO: {"component": "webh", "action": "handoff_pending", "conversation_id": "+553185383104"}
+2026-02-19T20:33:31.502438Z	2026-02-19 20:33:31,502 INFO: Enviado via REST: SID=SMcbc45e9fcde8535dcf32209183c559e4 para whatsapp:+553185383104
+2026-02-19T20:33:31.502533Z	2026-02-19 20:33:31,503 INFO: Resposta enviada com sucesso para +553185383104 out_msg_id=bot:agg:SM7f1f340f2c3cf3f7e85a1e82ebab14d4:1 inbound_id=agg:SM7f1f340f2c3cf3f7e85a1e82ebab14d4:1
+2026-02-19T20:35:15.965179Z	2026-02-19 20:35:15,965 INFO: Inbound: from=whatsapp:+553185383104 sid=SMa1f432124e3277c0336adf1c63f0747b body='Nilzilene'
+2026-02-19T20:35:15.965307Z	2026-02-19 20:35:15,966 INFO: {"component": "webh", "action": "inbound", "conversation_id": "+553185383104", "from_": "whatsapp:+553185383104", "to": "whatsapp:+553123915744", "twilio_sid": "SMa1f432124e3277c0336adf1c63f0747b", "text": "Nilzilene", "wa_profile_name": "😊"}
+2026-02-19T20:35:16.709053Z	2026-02-19 20:35:16,709 INFO: Mensagem 1 adicionada ao buffer de +553185383104. Delay: 5.0s. Texto: 'Nilzilene'
+2026-02-19T20:35:21.710200Z	2026-02-19 20:35:21,711 INFO: Processando 1 mensagens agregadas para +553185383104: 'Nilzilene'
+2026-02-19T20:35:21.710298Z	2026-02-19 20:35:21,711 INFO: {"component": "webh", "action": "aggregated_messages", "conversation_id": "+553185383104", "message_count": 1, "aggregated_text": "Nilzilene"}
+2026-02-19T20:35:21.710354Z	2026-02-19 20:35:21,711 INFO: Processando async: +553185383104 - Nilzilene...
+2026-02-19T20:35:21.710411Z	2026-02-19 20:35:21,711 INFO: Handoff mode (pending_handoff): sem resposta automática para +553185383104
+

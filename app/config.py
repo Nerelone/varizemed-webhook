@@ -5,11 +5,26 @@ def _bool_env(name, default="false"):
     return os.getenv(name, default).lower() == "true"
 
 
-def _csv_casefold(name, default=""):
+def _normalize_for_exact_match(text):
+    return " ".join((text or "").split()).casefold()
+
+
+def _handoff_hints_env(name, default=""):
+    raw = (os.getenv(name, default) or "").strip()
+    if not raw:
+        return []
+
+    if "||" in raw:
+        parts = raw.split("||")
+    elif "\n" in raw or "\r" in raw:
+        parts = raw.replace("\r", "\n").split("\n")
+    else:
+        parts = [raw]
+
     return [
-        s.strip().casefold()
-        for s in os.getenv(name, default).split(",")
-        if s.strip()
+        _normalize_for_exact_match(part)
+        for part in parts
+        if part and part.strip()
     ]
 
 
@@ -43,6 +58,8 @@ class BaseConfig:
     DF_LOCATION = os.getenv("DF_LOCATION", "global").strip()
     DF_AGENT_ID = os.getenv("DF_AGENT_ID", "").strip()
     LANG_CODE = os.getenv("DF_LANG_CODE", "pt-br").strip()
+    CX_TIMEOUT_SECONDS = _float_env("CX_TIMEOUT_SECONDS", "15.0")
+    CX_RETRY_ATTEMPTS = _int_env("CX_RETRY_ATTEMPTS", "3")
 
     DF_HANDOFF_PARAM = (os.getenv("DF_HANDOFF_PARAM", "handoff_request") or "").strip()
     DF_HANDOFF_MARKER = os.getenv("DF_HANDOFF_MARKER", "##HANDOFF_TRIGGER##")
@@ -62,9 +79,19 @@ class BaseConfig:
         "true"
     )
 
-    DF_HANDOFF_TEXT_HINTS = _csv_casefold(
+    DF_HANDOFF_TEXT_HINTS = _handoff_hints_env(
         "DF_HANDOFF_TEXT_HINTS",
-        "transferindo você agora para um de nossos atendentes,atendente continuará seu atendimento em instantes"
+        (
+            "Entendido. Para te ajudar melhor com essa questão, estou transferindo "
+            "nossa conversa para a equipe de atendimento humano agora mesmo. Por "
+            "favor, aguarde um instante que um de nossos atendentes já vai falar "
+            "com você por aqui."
+            "||"
+            "Compreendido. Como nosso expediente de atendimento já encerrou por "
+            "hoje, deixei sua solicitação marcada como prioridade no sistema. "
+            "Nossa equipe humana entrará em contato com você por aqui logo no "
+            "início do próximo dia útil."
+        )
     )
 
     FS_CONV_COLL = os.getenv("FS_CONV_COLL", "conversations").strip()

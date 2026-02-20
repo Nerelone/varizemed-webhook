@@ -1,6 +1,6 @@
 # WEBH - Manual de Operacao e Administracao
 
-Ultima atualizacao: 2026-02-19
+Ultima atualizacao: 2026-02-20
 
 Este documento descreve como o servico webh esta organizado, como configurar ambiente, e como fazer deploy em staging.
 
@@ -76,17 +76,17 @@ Variaveis:
 - `DF_LOCATION`
 - `DF_AGENT_ID`
 - `DF_LANG_CODE`
+- `CX_TIMEOUT_SECONDS` (default: `15.0`)
+- `CX_RETRY_ATTEMPTS` (default: `3`)
 
 Retry:
-- `detect_intent_text` tenta ate 3 vezes por erros transitorios (500/503/timeout).
+- `detect_intent_text` tenta ate `CX_RETRY_ATTEMPTS` vezes por erros transitorios (500/503/timeout).
 - Backoff exponencial com jitter.
 
 ### Handoff (regra atual)
 - Deteccao de handoff considera:
-  - `DF_HANDOFF_MARKER` no texto.
-  - frases de `DF_HANDOFF_TEXT_HINTS` (substring, case-insensitive).
-  - payload custom com `handoff=true`.
-  - parametros de sessao (`handoff_request` e `handoff_requested`).
+  - frases de `DF_HANDOFF_TEXT_HINTS` por comparacao exata (apos normalizacao de espacos e `casefold`).
+  - parametro de sessao configurado em `DF_HANDOFF_PARAM` com valor truthy (producao: `handoff_request=true`).
 - Quando handoff e detectado com handoff habilitado:
   - conversa vai para `pending_handoff`.
   - resposta enviada ao usuario prioriza o texto retornado pelo CX.
@@ -125,9 +125,10 @@ Obrigatorias:
 ## Variaveis de Ambiente Importantes
 
 Principais (alem das obrigatorias):
+- `CX_TIMEOUT_SECONDS` (tempo maximo por chamada `detect_intent`, em segundos)
+- `CX_RETRY_ATTEMPTS` (numero de tentativas para erros transitorios do CX)
 - `DF_HANDOFF_PARAM` (valor esperado: `handoff_request`)
-- `DF_HANDOFF_MARKER`
-- `DF_HANDOFF_TEXT_HINTS` (CSV separado por virgula; usado como dicas de substring)
+- `DF_HANDOFF_TEXT_HINTS` (frases separadas por `||` ou quebra de linha; comparacao exata)
 - `HANDOFF_ACK_TEXT` (fallback para handoff sem texto vindo do CX)
 - `HANDOFF_DISABLED_TEXT`
 - `FEATURE_DISABLE_HANDOFF`
@@ -136,13 +137,13 @@ Principais (alem das obrigatorias):
 - `TWILIO_POST_RETRY_BACKOFF_SECONDS` (default: 0.3)
 
 Observacao importante sobre `DF_HANDOFF_TEXT_HINTS`:
-- Como o valor e CSV, evite virgulas dentro de cada frase.
-- Se precisar atualizar por CLI com varias frases, prefira delimitador alternativo:
+- Nao use fragmentos curtos de frase (ex.: apenas `por favor`), pois o objetivo e bater com texto completo.
+- Use frases completas separadas por `||` (ou quebra de linha):
 ```powershell
 gcloud run services update webh `
   --project=val-02-469714 `
   --region=southamerica-east1 `
-  --update-env-vars "^@^DF_HANDOFF_TEXT_HINTS=frase 1,frase 2,frase 3"
+  --update-env-vars "^@^DF_HANDOFF_TEXT_HINTS=frase completa 1||frase completa 2"
 ```
 
 Use `env.staging.example.yaml` como referencia de staging e mantenha `env.staging.yaml` apenas local (nao versionado).
