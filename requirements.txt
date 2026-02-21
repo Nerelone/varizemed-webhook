@@ -3,4 +3,5 @@ gunicorn==22.0.0
 twilio==9.2.3
 google-cloud-dialogflow-cx==1.28.0
 google-cloud-firestore==2.16.0
+google-cloud-speech==2.36.1
 requests==2.31.0

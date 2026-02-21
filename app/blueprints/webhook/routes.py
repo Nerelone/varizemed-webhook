@@ -1,6 +1,6 @@
 ﻿from flask import current_app, request
 
-from app.extensions import get_df_client, get_fs, get_http_session
+from app.extensions import get_df_client, get_fs, get_http_session, get_speech_client
 from app.repositories.firestore_repo import FirestoreRepository
 from app.services.webhook_service import (
     get_aggregation_debug_info,
@@ -30,6 +30,7 @@ def webhook():
         repo=repo,
         cx_client=get_df_client(),
         http_session=get_http_session(),
+        speech_client=get_speech_client(),
     )
 
 

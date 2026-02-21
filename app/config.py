@@ -102,6 +102,14 @@ class BaseConfig:
     MESSAGE_DEBOUNCE_MAX_SECONDS = _float_env("MESSAGE_DEBOUNCE_MAX_SECONDS", "10.0")
     FEATURE_MESSAGE_AGGREGATION = _bool_env("FEATURE_MESSAGE_AGGREGATION", "true")
 
+    FEATURE_AUDIO_TRANSCRIPTION = _bool_env("FEATURE_AUDIO_TRANSCRIPTION", "true")
+    STT_LANGUAGE_CODE = os.getenv("STT_LANGUAGE_CODE", "pt-BR").strip()
+    STT_TIMEOUT_SECONDS = _float_env("STT_TIMEOUT_SECONDS", "30.0")
+    STT_FALLBACK_TEXT = os.getenv(
+        "STT_FALLBACK_TEXT",
+        "[Audio recebido, mas nao foi possivel transcrever. Pode repetir por texto?]",
+    ).strip()
+
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 
 

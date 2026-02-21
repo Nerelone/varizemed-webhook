@@ -9,6 +9,7 @@ from google.cloud import firestore
 
 from app.core.logging import log_event
 from app.services.cx_service import cx_all_params_dict, detect_intent_text
+from app.services.transcription_service import is_audio_media_type, transcribe_twilio_audio
 from app.services.twilio_service import send_whatsapp_text
 
 
@@ -110,6 +111,14 @@ def _join_bot_texts(texts):
         return ""
 
 
+def _merge_audio_transcript(body: str, transcript: str) -> str:
+    if "[Audio]" in (body or ""):
+        return body.replace("[Audio]", transcript)
+    if (body or "").strip():
+        return f"{body}\n\n[Transcricao de audio] {transcript}"
+    return transcript
+
+
 def extract_inbound_request(req):
     frm = req.form.get("From", "")
     to = req.form.get("To", "")
@@ -130,7 +139,7 @@ def extract_inbound_request(req):
         media_url = req.form.get("MediaUrl0")
         media_type = req.form.get("MediaContentType0")
 
-        if media_type and media_type.startswith("audio/") and not body.strip():
+        if is_audio_media_type(media_type) and not body.strip():
             body = "[Audio]"
         elif media_type and media_type.startswith("image/") and not body.strip():
             body = "[Imagem]"
@@ -235,13 +244,16 @@ def _process_aggregated_messages(conversation_id: str):
     repo = first_data.get("repo")
     cx_client = first_data.get("cx_client")
     http_session = first_data.get("http_session")
+    speech_client = first_data.get("speech_client")
 
     media_url = None
     media_type = None
+    media_message_id = None
     for msg in messages:
         if msg.get("media_url"):
             media_url = msg["media_url"]
             media_type = msg.get("media_type")
+            media_message_id = msg.get("inbound_id")
             break
 
     aggregated_id = f"agg:{inbound_id}:{len(messages)}"
@@ -272,6 +284,8 @@ def _process_aggregated_messages(conversation_id: str):
         repo=repo,
         cx_client=cx_client,
         http_session=http_session,
+        speech_client=speech_client,
+        source_message_id=media_message_id,
     )
 
 
@@ -289,6 +303,7 @@ def _add_to_aggregation_buffer(
     repo,
     cx_client,
     http_session,
+    speech_client=None,
 ):
     if not _bool_setting(settings, "FEATURE_MESSAGE_AGGREGATION", default=True):
         return False
@@ -308,6 +323,7 @@ def _add_to_aggregation_buffer(
                 "repo": repo,
                 "cx_client": cx_client,
                 "http_session": http_session,
+                "speech_client": speech_client,
             }
 
         buffer["messages"].append({
@@ -363,7 +379,7 @@ def get_aggregation_debug_info(settings):
     }
 
 
-def handle_webhook(req, *, settings, repo, cx_client, http_session):
+def handle_webhook(req, *, settings, repo, cx_client, http_session, speech_client=None):
     if not is_valid_twilio_request(req, settings.get("AUTH_TOKEN")):
         logging.warning("Twilio signature inválida para URL %s", req.url)
         return Response("Invalid signature", status=403)
@@ -439,6 +455,7 @@ def handle_webhook(req, *, settings, repo, cx_client, http_session):
         repo=repo,
         cx_client=cx_client,
         http_session=http_session,
+        speech_client=speech_client,
     )
 
     if not added_to_buffer:
@@ -459,6 +476,8 @@ def handle_webhook(req, *, settings, repo, cx_client, http_session):
                 "repo": repo,
                 "cx_client": cx_client,
                 "http_session": http_session,
+                "speech_client": speech_client,
+                "source_message_id": inbound_id,
             },
             daemon=True,
         )
@@ -483,11 +502,14 @@ def process_message_async(
     repo,
     cx_client,
     http_session,
+    speech_client=None,
+    source_message_id: str | None = None,
 ):
     try:
         logging.info("Processando async: %s - %s...", conversation_id, body[:50])
 
         inbound_id = sid or session_id
+        transcription_message_id = source_message_id or inbound_id
         out_msg_id = f"bot:{inbound_id}"
 
         status = (conv_data.get("status") or "bot").lower()
@@ -544,6 +566,67 @@ def process_message_async(
 
         if saved_name and isinstance(saved_name, str):
             reset_cx_params["user_name"] = saved_name
+
+        if (
+            speech_client
+            and _bool_setting(settings, "FEATURE_AUDIO_TRANSCRIPTION", default=True)
+            and media_url
+            and is_audio_media_type(media_type)
+        ):
+            logging.info(
+                "Audio recebido para %s (msg=%s type=%s). Iniciando transcricao.",
+                conversation_id,
+                transcription_message_id,
+                media_type,
+            )
+
+            transcript = transcribe_twilio_audio(
+                speech_client,
+                media_url,
+                media_type,
+                settings=settings,
+                http_session=http_session,
+            )
+
+            if transcript:
+                body = _merge_audio_transcript(body, transcript)
+                log_event(
+                    "audio_transcribed",
+                    conversation_id=conversation_id,
+                    message_id=transcription_message_id,
+                    transcript_length=len(transcript),
+                )
+
+                if transcription_message_id:
+                    try:
+                        repo.update_message(
+                            conversation_id,
+                            transcription_message_id,
+                            transcription=transcript,
+                            original_media_type=media_type,
+                            transcription_source="google-stt",
+                        )
+                    except Exception as exc:
+                        logging.warning(
+                            "Falha ao salvar transcricao no Firestore (conv=%s msg=%s): %s",
+                            conversation_id,
+                            transcription_message_id,
+                            exc,
+                        )
+
+                try:
+                    repo.update_conversation(conversation_id, last_message_text=body)
+                except Exception:
+                    logging.warning("Falha ao atualizar last_message_text com transcricao", exc_info=True)
+            else:
+                log_event(
+                    "audio_transcription_empty",
+                    conversation_id=conversation_id,
+                    message_id=transcription_message_id,
+                )
+                fallback = (settings.get("STT_FALLBACK_TEXT") or "").strip()
+                if fallback:
+                    body = _merge_audio_transcript(body, fallback)
 
         try:
             texts, resp = detect_intent_text(
