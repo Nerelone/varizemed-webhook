@@ -95,6 +95,8 @@ Retry:
   - prioridade de resposta: `HANDOFF_DISABLED_TEXT` -> texto do CX -> `HANDOFF_ACK_TEXT`.
 - Se CX falhar apos retries:
   - fallback enviado: `Tivemos um problema de estabilidade, pode repetir sua pergunta?`
+- Se o CX responder sem texto (sem excecao):
+  - fallback enviado: `Nao consegui gerar uma resposta agora, pode repetir sua pergunta?`
 
 ## Firestore
 

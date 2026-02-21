@@ -24,6 +24,7 @@ def twiml_empty(status: int = 200) -> Response:
 _message_buffers = {}
 _buffers_lock = threading.Lock()
 FALLBACK_STABILITY_TEXT = "Tivemos um problema de estabilidade, pode repetir sua pergunta?"
+FALLBACK_EMPTY_REPLY_TEXT = "Nao consegui gerar uma resposta agora, pode repetir sua pergunta?"
 
 
 def is_valid_twilio_request(req, auth_token: str) -> bool:
@@ -105,7 +106,24 @@ def _handoff_from_cx(resp, texts, allow_param: bool, settings) -> bool:
 
 def _join_bot_texts(texts):
     try:
-        parts = [t.strip() for t in (texts or []) if isinstance(t, str) and t.strip()]
+        parts = []
+        last_norm = None
+        for raw_text in texts or []:
+            if not isinstance(raw_text, str):
+                continue
+            text = raw_text.strip()
+            if not text:
+                continue
+
+            # Evita repetir a mesma mensagem quando o CX devolve peças duplicadas
+            # consecutivas no mesmo response_messages.
+            text_norm = _normalize_for_exact_match(text)
+            if last_norm is not None and text_norm == last_norm:
+                continue
+
+            parts.append(text)
+            last_norm = text_norm
+
         return "\n\n".join(parts)
     except Exception:
         return ""
@@ -668,6 +686,13 @@ def process_message_async(
         handoff_requested = _handoff_from_cx(resp, texts, allow_param=allow_handoff_param, settings=settings)
 
         bot_reply_text = _join_bot_texts(texts)
+        if not bot_reply_text:
+            logging.warning(
+                "CX retornou sem texto para %s (handoff_requested=%s texts_count=%d).",
+                conversation_id,
+                handoff_requested,
+                len(texts or []),
+            )
 
         if handoff_requested:
             if settings.get("FEATURE_DISABLE_HANDOFF"):
@@ -677,7 +702,7 @@ def process_message_async(
                     settings.get("HANDOFF_DISABLED_TEXT")
                     or bot_reply_text
                     or settings.get("HANDOFF_ACK_TEXT")
-                    or FALLBACK_STABILITY_TEXT
+                    or FALLBACK_EMPTY_REPLY_TEXT
                 )
             else:
                 logging.info("CX pediu handoff: %s -> status=pending_handoff", conversation_id)
@@ -693,10 +718,10 @@ def process_message_async(
                 reply_text = (
                     bot_reply_text
                     or settings.get("HANDOFF_ACK_TEXT")
-                    or FALLBACK_STABILITY_TEXT
+                    or FALLBACK_EMPTY_REPLY_TEXT
                 )
         else:
-            reply_text = bot_reply_text or FALLBACK_STABILITY_TEXT
+            reply_text = bot_reply_text or FALLBACK_EMPTY_REPLY_TEXT
 
         created_out = repo.add_message_if_new(conversation_id, out_msg_id, "out", "bot", reply_text)
         if not created_out:
