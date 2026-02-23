@@ -4,6 +4,11 @@ Ultima atualizacao: 2026-02-20
 
 Este documento descreve como o servico `webh` esta organizado, como configurar ambiente e como fazer deploy em staging.
 
+> Nota de privacidade: este README usa placeholders em exemplos de infraestrutura e contatos.
+> Substitua por valores reais apenas no seu ambiente:
+> `<GCP_PROJECT_ID>`, `<GCP_REGION>`, `<CLOUD_RUN_SERVICE>`, `<CLOUD_RUN_BASE_URL>`,
+> `<TEST_WHATSAPP_FROM>`, `<TWILIO_WHATSAPP_TO>`.
+
 ## Visao Geral
 
 O `webh` e o webhook do Twilio (WhatsApp) que integra com Dialogflow CX e persiste conversas no Firestore. O fluxo principal:
@@ -142,8 +147,8 @@ Observacao importante sobre `DF_HANDOFF_TEXT_HINTS`:
 
 ```powershell
 gcloud run services update webh `
-  --project=val-02-469714 `
-  --region=southamerica-east1 `
+  --project=<GCP_PROJECT_ID> `
+  --region=<GCP_REGION> `
   --update-env-vars "^@^DF_HANDOFF_TEXT_HINTS=frase completa 1||frase completa 2"
 ```
 
@@ -166,10 +171,10 @@ Copy-Item env.staging.example.yaml env.staging.yaml
 3) Deploy (exemplo):
 
 ```powershell
-gcloud run deploy webh-staging `
+gcloud run deploy <CLOUD_RUN_SERVICE> `
   --source . `
-  --project=val-02-469714 `
-  --region=southamerica-east1 `
+  --project=<GCP_PROJECT_ID> `
+  --region=<GCP_REGION> `
   --allow-unauthenticated `
   --env-vars-file env.staging.yaml
 ```
@@ -200,7 +205,7 @@ Observacoes:
 ## Logs (Cloud Run)
 
 ```powershell
-gcloud logging read "resource.labels.service_name=webh-staging" --limit=50
+gcloud logging read "resource.labels.service_name=<CLOUD_RUN_SERVICE>" --limit=50
 ```
 
 ## Testes Rapidos (Staging)
@@ -210,10 +215,10 @@ gcloud logging read "resource.labels.service_name=webh-staging" --limit=50
 Envie duas vezes o mesmo payload com o mesmo `MessageSid`. A segunda deve ser ignorada.
 
 ```powershell
-$url = "https://webh-staging-110818688721.southamerica-east1.run.app/webhook"
+$url = "https://<CLOUD_RUN_BASE_URL>/webhook"
 $body = @{
-  From = "whatsapp:+553183440484"
-  To = "whatsapp:+14155238886"
+  From = "whatsapp:<TEST_WHATSAPP_FROM>"
+  To = "whatsapp:<TWILIO_WHATSAPP_TO>"
   Body = "teste idempotencia"
   MessageSid = "SM_TESTE_001"
 }
@@ -232,8 +237,8 @@ Ultimos registros (1h):
 
 ```powershell
 gcloud logging read `
-  "resource.type=cloud_run_revision AND resource.labels.service_name=webh-staging" `
-  --project=val-02-469714 `
+  "resource.type=cloud_run_revision AND resource.labels.service_name=<CLOUD_RUN_SERVICE>" `
+  --project=<GCP_PROJECT_ID> `
   --freshness=1h `
   --limit=200 `
   --format="value(textPayload)"
@@ -243,8 +248,8 @@ Filtrar apenas registros de envio REST e idempotencia:
 
 ```powershell
 gcloud logging read `
-  "resource.type=cloud_run_revision AND resource.labels.service_name=webh-staging AND (textPayload:Enviado OR textPayload:Resposta OR textPayload:Webhook)" `
-  --project=val-02-469714 `
+  "resource.type=cloud_run_revision AND resource.labels.service_name=<CLOUD_RUN_SERVICE> AND (textPayload:Enviado OR textPayload:Resposta OR textPayload:Webhook)" `
+  --project=<GCP_PROJECT_ID> `
   --freshness=1h `
   --limit=200 `
   --format="value(textPayload)"

@@ -33,6 +33,7 @@ logs/
 env.*.yaml
 !env.example.yaml
 !env.*.example.yaml
+AGENTS.md
 
 # Local databases and runtime data
 *.sqlite
