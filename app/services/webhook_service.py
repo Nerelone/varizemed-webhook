@@ -670,16 +670,25 @@ def process_message_async(
         except Exception:
             logging.error("DetectIntent falhou", exc_info=True)
             reply_text = FALLBACK_STABILITY_TEXT
-            created_out = repo.add_message_if_new(conversation_id, out_msg_id, "out", "bot", reply_text)
-            if created_out:
-                fallback_success = send_whatsapp_text(frm, reply_text, settings=settings, http_session=http_session)
-                if not fallback_success:
-                    logging.error(
-                        "Falha ao enviar fallback para %s out_msg_id=%s inbound_id=%s",
-                        conversation_id,
+            if repo.message_exists(conversation_id, out_msg_id):
+                logging.info("Fallback do bot ja registrado para inbound_id=%s (skip send)", inbound_id)
+                return
+
+            fallback_success = send_whatsapp_text(frm, reply_text, settings=settings, http_session=http_session)
+            if fallback_success:
+                created_out = repo.add_message_if_new(conversation_id, out_msg_id, "out", "bot", reply_text)
+                if not created_out:
+                    logging.warning(
+                        "Fallback enviado, mas mensagem ja existia no Firestore para out_msg_id=%s",
                         out_msg_id,
-                        inbound_id,
                     )
+            else:
+                logging.error(
+                    "Falha ao enviar fallback para %s out_msg_id=%s inbound_id=%s",
+                    conversation_id,
+                    out_msg_id,
+                    inbound_id,
+                )
             return
 
         allow_handoff_param = status == "bot" and bool(settings.get("DF_HANDOFF_PARAM"))
@@ -723,14 +732,19 @@ def process_message_async(
         else:
             reply_text = bot_reply_text or FALLBACK_EMPTY_REPLY_TEXT
 
-        created_out = repo.add_message_if_new(conversation_id, out_msg_id, "out", "bot", reply_text)
-        if not created_out:
+        if repo.message_exists(conversation_id, out_msg_id):
             logging.info("Resposta do bot ja registrada para inbound_id=%s (skip send)", inbound_id)
             return
 
         success = send_whatsapp_text(frm, reply_text, settings=settings, http_session=http_session)
 
         if success:
+            created_out = repo.add_message_if_new(conversation_id, out_msg_id, "out", "bot", reply_text)
+            if not created_out:
+                logging.warning(
+                    "Resposta enviada, mas mensagem ja existia no Firestore para out_msg_id=%s",
+                    out_msg_id,
+                )
             logging.info(
                 "Resposta enviada com sucesso para %s out_msg_id=%s inbound_id=%s",
                 conversation_id,

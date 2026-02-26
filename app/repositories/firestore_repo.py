@@ -71,6 +71,11 @@ class FirestoreRepository:
         ref.set(msg_data)
         return True
 
+    def message_exists(self, conversation_id: str, message_id: str) -> bool:
+        if not message_id:
+            return False
+        return self._msg_ref(conversation_id, message_id).get().exists
+
     def update_conversation(self, conversation_id: str, **fields):
         fields["updated_at"] = firestore.SERVER_TIMESTAMP
         self._conv_ref(conversation_id).set(fields, merge=True)
